@@ -31,26 +31,26 @@ html, body { height: 100%; margin: 0px; padding: 0px; }
 
 
 var senders = [
-    {x: 120, y: 120, repr: "square",property:{"asdf": "asdf"}},
-    {x: 150, y: 100, repr: "triangle",property:{"asdf": "asdf"}},
-    {x: 50, y: 10, repr: "circle",property:{"asdf": "asdf"}},
-    {x: 1000, y: 10, repr: "circle",property:{"asdf": "asdf"}},
-    {x: 10, y: 1000, repr: "triangle",property:{}},
+    // {x: 120, y: 120, repr: "square",property:{"asdf": "asdf"}},
+    // {x: 150, y: 100, repr: "triangle",property:{"asdf": "asdf"}},
+    // {x: 50, y: 10, repr: "circle",property:{"asdf": "asdf"}},
+    // {x: 1000, y: 10, repr: "circle",property:{"asdf": "asdf"}},
+    // {x: 10, y: 1000, repr: "triangle",property:{}},
 ];
 var receivers = [
 
 ]
-var paths = [
-    {
-        color: "orange",
-        thickness: 3,
-        path: [
-            [1,2],
-            [40,50],
-            [50,40]
-        ]
-    }
-]
+// var paths = [
+//     {
+//         color: "orange",
+//         thickness: 3,
+//         path: [
+//             [1,2],
+//             [40,50],
+//             [50,40]
+//         ]
+//     }
+// ]
 
 function showMessages() {
     window.location.href = "/messages.html";
@@ -158,8 +158,10 @@ function redrawCanvas() {
         // areas are completely separate
         // live updating?
         const ctx = canvas.getContext("2d");
-        ctx.lineWidth = path.thickness;
-        ctx.strokeStyle = path.color;
+        // ctx.lineWidth = path.thickness;
+        // ctx.strokeStyle = path.color;
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "orange";
         ctx.beginPath();
         if (path.path.length >= 2) {
 
@@ -178,7 +180,7 @@ function clearCanvas() {
     interact = [];
 }
 
-function syncMessages() {
+function syncPeople() {
 
     fetch("/get_people_data", {
         method: "GET",
@@ -198,7 +200,7 @@ function syncMessages() {
 }
 
 window.addEventListener("DOMContentLoaded", function() {
-    setInterval(syncMessages, 5000);
+    setInterval(syncPeople, 5000);
 });
 
 function infoPopup(x, y, property) {
@@ -329,7 +331,7 @@ window.addEventListener("DOMContentLoaded", function() {
         <div id="main">
             <div id="tabs">
                 <img src="static/mail.jpg" id="messages" onclick="showMessages();">
-                <img src="static/apple.jpg" id="resources" onclick="showResources();">
+                <img src="static/apple.png" id="resources" onclick="showResources();">
             </div>
             <div id="map">
                 <canvas id="map_canvas" width="3000" height="3000"></canvas>
