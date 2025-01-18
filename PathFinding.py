@@ -24,35 +24,6 @@ class PathFinding:
                         graph[(i, j)].append(((ni, nj), math.sqrt(di**2 + dj**2)))
         return graph
 
-    def dijkstra(self, start, goal):
-        queue = [(0, start)]
-        distances = {node: float('inf') for node in self.graph}
-        distances[start] = 0
-        previous_nodes = {node: None for node in self.graph}
-
-        while queue:
-            current_distance, current_node = heapq.heappop(queue)
-
-            if current_node == goal:
-                path = []
-                while previous_nodes[current_node]:
-                    path.append(current_node)
-                    current_node = previous_nodes[current_node]
-                path.append(start)
-                return path[::-1]
-
-            if current_distance > distances[current_node]:
-                continue
-
-            for neighbor, weight in self.graph[current_node]:
-                distance = current_distance + weight
-                if distance < distances[neighbor]:
-                    distances[neighbor] = distance
-                    previous_nodes[neighbor] = current_node
-                    heapq.heappush(queue, (distance, neighbor))
-
-        return []
-
     def a_star(self, start, goal):
         def heuristic(a, b):
             return math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)

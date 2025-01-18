@@ -5,7 +5,10 @@
             "resources": {
                 "water": 8,
                 "medicine": 1
-            }
+            },
+            "x": 2,
+            "y": 3,
+            "role": "distributor"
         }
     ],
     "receivers": [
@@ -13,13 +16,19 @@
             "name": "Receiver2",
             "needs": {
                 "water": 4
-            }
+            },
+            "x": 23,
+            "y": 72,
+            "role": "camp"
         },
         {
             "name": "Receiver3",
             "needs": {
                 "medicine": 1
-            }
+            },
+            "x": 30,
+            "y": 50,
+            "role": "camp"
         }
     ]
 }

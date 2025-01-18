@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify
 from datetime import datetime
 import uuid
 import json
+import os
+import subprocess
 
 app = Flask(__name__)
 
@@ -9,27 +11,107 @@ chats = []
 rescue_packages = []
 users = []
 
-@app.route('/add_user', methods=['POST'])
+# Load data from JSON files
+def load_json(file_path):
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as file:
+            return json.load(file)
+    return []
+
+def save_json(file_path, data):
+    with open(file_path, 'w') as file:
+        json.dump(data, file, indent=4)
+
+locations = load_json('locations.json')
+resources = load_json('resources.json')
+deliveries = load_json('deliveries.json')
+names = load_json('names.json')
+
+# ...existing code...
+@app.route('/request_resources', methods=['POST'])
+def request_resources():
+    data = request.json
+    sender = data.get('sender')
+    name = data.get('name')
+    amount = data.get('amount')
+
+    if not all([sender, name, amount]):
+        return jsonify({"error": "Missing sender, name, or amount"}), 400
+
+    receiver_needs = [{"name": sender, "needs": {name: amount}}]
+    result = subprocess.run(['python3', 'UpdateResources.py', '--receiver_needs', json.dumps(receiver_needs)], capture_output=True, text=True)
+
+    if result.returncode != 0:
+        return jsonify({"error": "Failed to update resources", "details": result.stderr}), 500
+
+    return jsonify({"message": "Resources requested successfully"}), 200
+
+@app.route('/add_resources', methods=['POST'])
+def add_resources():
+    data = request.json
+    sender = data.get('sender')
+    name = data.get('name')
+    amount = data.get('amount')
+
+    if not all([sender, name, amount]):
+        return jsonify({"error": "Missing sender, name, or amount"}), 400
+
+    sender_resources = [{"name": sender, "resources": {name: amount}}]
+    result = subprocess.run(['python3', 'UpdateResources.py', '--sender_resources', json.dumps(sender_resources)], capture_output=True, text=True)
+
+    if result.returncode != 0:
+        return jsonify({"error": "Failed to update resources", "details": result.stderr}), 500
+
+    return jsonify({"message": "Resources added successfully"}), 200
+
+# ...existing code...
+if __name__ == '__main__':
+    app.run(debug=True)
+
+@app.route('/get_users', methods=['POST'])
+def get_users():
+    # Call merge_json.py
+    result = subprocess.run(['python3', 'merge_json.py'], capture_output=True, text=True)
+    
+    if result.returncode != 0:
+        return jsonify({"error": "Failed to merge data", "details": result.stderr}), 500
+
+    # Load the merged data from people_data.json
+    people_data = load_json('people_data.json')
+    
+    return jsonify(people_data), 200
+
+@app.route('/add_name', methods=['POST'])
 def add_user():
     data = request.json
-    user = data.get('user')
+    user_name = data.get('name')
+    user_x = data.get('x')
+    user_y = data.get('y')
+    user_role = data.get('role')
 
-    if not user or not isinstance(user, dict):
+    if not user_name or not user_x or not user_y or not user_role:
         return jsonify({"error": "Invalid or missing user data"}), 400
 
-    user_id = str(uuid.uuid4())
-    user['id'] = user_id
-    users.append(user)
+    # Call UpdateLocations.py to add the user
+    if (user_role == 'camp'):
+        result = subprocess.run(['python3', 'UpdateLocations.py', '--add_receivers', json.dumps([{"name": user_name, "x": user_x, "y": user_y}])], capture_output=True, text=True)
+    else:
+        result = subprocess.run(['python3', 'UpdateLocations.py', '--add_senders', json.dumps([{"name": user_name, "x": user_x, "y": user_y}])], capture_output=True, text=True)
+    if "has already been taken" in result.stdout:
+        return jsonify({"error": f"User name '{user_name}' has already been taken"}), 400
 
-    return jsonify({"message": "User added successfully", "user": user}), 200
+    return jsonify({"message": "User added successfully", "user": user_name}), 200
 
-@app.route('/get_users', methods=['GET'])
-def get_users():
-    return jsonify({"users": users}), 200
-
-@app.route('/get_user/<user_id>', methods=['GET'])
-def get_user(user_id):
-    user = next((u for u in users if u['id'] == user_id), None)
+@app.route('/get_user/<user_name>', methods=['GET'])
+def get_user_by_name(user_name):
+    # Load the merged data from people_data.json
+    people_data = load_json('people_data.json')
+    
+    # Search for the user in senders and receivers
+    user = next((user for user in people_data['senders'] if user['name'] == user_name), None)
+    if not user:
+        user = next((user for user in people_data['receivers'] if user['name'] == user_name), None)
+    
     if not user:
         return jsonify({"error": "User not found"}), 404
 
@@ -100,13 +182,9 @@ def send_message():
 
 def calculate_path_time(package_info, receivers):
     try:
-        with open('packages.json', 'r') as file:
-            data = json.load(file)
-            for package in data:
-                if package['sender'] == package_info['sender'] and package['receiver'] == package_info['receiver'] and package['resource'] == package_info['resource']:
-                    return package.get('time', None)
-    except FileNotFoundError:
-        return None
+        for delivery in deliveries:
+            if delivery['sender'] == package_info['sender'] and delivery['receiver'] == package_info['receiver'] and delivery['resource'] == package_info['resource']:
+                return delivery.get('time', None)
     except KeyError:
         return None
 
@@ -117,7 +195,7 @@ def get_messages():
     if not user:
         return jsonify({"error": "Missing user parameter"}), 400
 
-    user_chats = [chat for chat in chats if chat['sender']['id'] == user or chat['receiver']['id'] == user]
+    user_chats = [chat for chat in chats if chat['sender'] == user or chat['receiver'] == user]
     return jsonify({"messages": user_chats}), 200
 
 @app.route('/update_package_status', methods=['POST'])
