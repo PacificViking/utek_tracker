@@ -1,0 +1,28 @@
+{
+    "n": 500,
+    "obstacles": [
+        [
+            52,
+            56
+        ]
+    ],
+    "senders": [
+        {
+            "name": "Sender2",
+            "x": 2,
+            "y": 3
+        }
+    ],
+    "receivers": [
+        {
+            "name": "Receiver2",
+            "x": 23,
+            "y": 72
+        },
+        {
+            "name": "Receiver3",
+            "x": 30,
+            "y": 50
+        }
+    ]
+}

@@ -1,0 +1,9 @@
+{
+    "senders": [
+        "Sender2"
+    ],
+    "receivers": [
+        "Receiver2",
+        "Receiver3"
+    ]
+}
