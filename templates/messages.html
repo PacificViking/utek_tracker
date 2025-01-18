@@ -1,22 +1,28 @@
 <html>
     <head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <style>
-.message {
-
+#messages {
+    border: 1px solid;
+    width: 100%;
+    border-collapse: collapse;
 }
 </style>
-        <template id="messageli">
-            <li class="message">
-                message
-            </li>
-        </template>
+<template id="messageli">
+    <tr class="message">
+        <td class="sender"></p>
+        <td class="receiver"></p>
+        <td class="text"></p>
+        <td class="timestamp"></p>
+    </tr>
+</template>
 <script>
     function syncMessages() {
 
         fetch("/get_messages", {
-            method: "POST",
+            method: "GET",
             body: JSON.stringify({
-                userId: getCookie("userId"),
+                user: localStorage.getItem("userid")
             }),
             headers: {
                 "Content-type": "application/json; charset=UTF-8"
@@ -24,15 +30,38 @@
         })
         .then((response) => response.json())
         .then((json) => function(json) {
-
+            for (const key in json) {
+                data = json[key];
+                temp = $("#messageli")[0];
+                item = temp.content.querySelector("tr");
+                the_tr = document.importNode(item, true);
+                sender = the_tr.querySelector("td.sender");
+                receiver = the_tr.querySelector("td.receiver");
+                text = the_tr.querySelector("td.text");
+                timestamp = the_tr.querySelector("td.timestamp");
+                sender.innerText = data.sender;
+                receiver.innerText = data.receiver;
+                text.innerText = data.text;
+                text.innerText = data.timestamp;
+                $("#messages tbody")[0].appendChild(the_tr);
+            }
         });
-
     }
-    setInterval(syncMessages, 5000);
+
+    window.addEventListener("DOMContentLoaded", function() {
+        setInterval(syncMessages, 5000);
+    });
+
 </script>
     </head>
     <body>
-        <ul id="messages">
-        </ul>
+        <table id="messages">
+            <tr class="header">
+                <th>Sender</th>
+                <th>Receiver</th>
+                <th>Message</th>
+                <th>Time</th>
+            </tr>
+        </table>
     </body>
 </html>

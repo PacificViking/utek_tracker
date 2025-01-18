@@ -1,0 +1,68 @@
+<html>
+    <head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<style>
+#messages {
+    border: 1px solid;
+    width: 100%;
+    border-collapse: collapse;
+}
+</style>
+<template id="messageli">
+    <tr class="message">
+        <td class="sender"></p>
+        <td class="receiver"></p>
+        <td class="text"></p>
+        <td class="timestamp"></p>
+    </tr>
+</template>
+<script>
+    function sendMessage() {
+        fetch("/send_message", {
+            method: "POST",
+            body: JSON.stringify({
+                sender: localStorage.getItem("userid"),
+                receiver: $("#receiver")[0].value,
+                message: $("#message")[0].value,
+            }),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+        })
+        .then((response) => response.json())
+        .then((json) => function(json) {
+            if (json["error"] != null) {
+                window.alert(json);
+            }
+        });
+    }
+
+    window.addEventListener("DOMContentLoaded", function() {
+        fetch("/get_users", {
+            method: "GET",
+            body: JSON.stringify({
+                user: localStorage.getItem("userid"),
+            }),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+        })
+        .then((response) => response.json())
+        .then((json) => function(json) {
+            for (const key in json) {
+                const item = document.createElement("option");
+                item.value = json[key].sender + "->" + json[key].receiver;
+                $("#receiver")[0].appendChild(item);
+            }
+        });
+    });
+
+
+</script>
+    </head>
+    <body>
+        <datalist id="receiver"></datalist>
+        <input type="text" id="message"/>
+        <button type="button" onclick="sendMessage();" id="button">Send!</button>
+    </body>
+</html>

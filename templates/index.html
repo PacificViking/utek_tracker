@@ -30,20 +30,20 @@ html, body { height: 100%; margin: 0px; padding: 0px; }
 <script>
 
 var things = [
-    {x: 120, y: 120, repr: "triangle",},
-    {x: 150, y: 100, repr: "triangle",},
-    {x: 50, y: 10, repr: "circle",},
-    {x: 1000, y: 10, repr: "circle",},
-    {x: 10, y: 1000, repr: "triangle",},
+    {x: 120, y: 120, repr: "triangle",property:{"asdf": "asdf"}},
+    {x: 150, y: 100, repr: "triangle",property:{"asdf": "asdf"}},
+    {x: 50, y: 10, repr: "circle",property:{"asdf": "asdf"}},
+    {x: 1000, y: 10, repr: "circle",property:{"asdf": "asdf"}},
+    {x: 10, y: 1000, repr: "triangle",property:{}},
 ];
 var paths = [
     {
         color: "orange",
         thickness: 3,
         path: [
-        [1,2],
-        [40,50],
-        [50,40]
+            [1,2],
+            [40,50],
+            [50,40]
         ]
     }
 ]
@@ -51,6 +51,8 @@ var paths = [
 function showMessages() {
     console.log("asf");
 }
+
+var interact = [];
 
 function redrawCanvas() {
     const canvas = $("#map_canvas")[0];
@@ -78,6 +80,8 @@ function redrawCanvas() {
             ctx.arc(thing.x, thing.y, size, 0, Math.PI * 2, true);
             ctx.fill();
         }
+        const radius = 10;
+        interact.push({x: thing.x, y: thing.y, radius: radius, property: thing.property})
     }
 
     for (const path of paths) {
@@ -88,6 +92,7 @@ function redrawCanvas() {
         const ctx = canvas.getContext("2d");
         ctx.lineWidth = path.thickness;
         ctx.strokeStyle = path.color;
+        ctx.beginPath();
         if (path.path.length >= 2) {
 
             ctx.moveTo(path.path[0][0], path.path[0][1])
@@ -102,6 +107,28 @@ function clearCanvas() {
     const canvas = $("#map_canvas")[0];
     const context = canvas.getContext('2d');
     context.clearRect(0, 0, canvas.width, canvas.height);
+    interact = [];
+}
+
+function infoPopup(x, y, property) {
+    console.log("asdf");
+    const popup = document.createElement("ul");
+    popup.id = "popup";
+    for (const key in property) {
+        const element = document.createElement("li");
+        element.innerText = key + ": " + property[key];
+        popup.appendChild(element);
+    }
+    popup.style.backgroundColor = "cyan";
+    popup.style.padding = "2px";
+    popup.style.listStyleType = "none";
+    popup.style.position = "absolute";
+    popup.style.left = String(x) + "px";
+    popup.style.top = String(y) + "px";
+    document.body.appendChild(popup);
+}
+function clearPopup() {
+    $("#popup").remove();
 }
 
 window.addEventListener("DOMContentLoaded", function() {
@@ -119,9 +146,46 @@ window.addEventListener("DOMContentLoaded", function() {
         }
     })
     resize_observer.observe(map);
-    
     redrawCanvas();
-    clearCanvas();
+
+    const canvas = $("#map_canvas")[0];
+    canvas.addEventListener('oncontextmenu', (e) => {
+        e.preventDefault()
+        const clickx = e.clientX-canvas.getBoundingClientRect().left;
+        const clicky = e.clientY-canvas.getBoundingClientRect().top;
+        $("#x_select")[0].value = Math.round(clickx);
+        $("#y_select")[0].value = Math.round(clicky);
+        return false;
+
+    });
+    canvas.addEventListener('click', (e) => {
+        const clickx = e.clientX-canvas.getBoundingClientRect().left;
+        const clicky = e.clientY-canvas.getBoundingClientRect().top;
+        clearPopup();
+        for (const i of interact) {
+            if (Math.abs(i.x - clickx) < i.radius) {
+                // console.log(Math.abs(i.y - clicky), i.radius);
+                if (Math.abs(i.y - clicky) < i.radius) {
+                    infoPopup(e.pageX, e.pageY, i.property);
+                    // create hover
+                }
+            }
+        }
+        $("#x_select")[0].value = Math.round(clickx);
+        $("#y_select")[0].value = Math.round(clicky);
+
+    });
+
+    if (localStorage.getItem("userid") == null) {
+        localStorage.setItem("userid", "User "+String(Math.round(Math.random()*10000000)))
+    }
+    $("#name_select")[0].value = localStorage.getItem("userid");
+
+    $("#submit_select")[0].addEventListener('click', (e) => {
+
+
+    });
+    
 
 }, false);
 
@@ -135,7 +199,15 @@ window.addEventListener("DOMContentLoaded", function() {
             <div id="map">
                 <canvas id="map_canvas" width="3000" height="3000"></canvas>
             </div>
-            <div id="selection"></div>
+            <div id="selection">
+                <span>X:</span>
+                <input type="text" id="x_select" name="x_select" />
+                <span>Y:</span>
+                <input type="text" id="y_select" name="y_select" />
+                <span>Name:</span>
+                <input type="text" id="name_select" name="name" />
+                <button type="button" id="submit_select">Submit</button>
+            </div>
         </div>
     </body>
 </html>
