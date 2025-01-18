@@ -29,13 +29,17 @@ html, body { height: 100%; margin: 0px; padding: 0px; }
 </style>
 <script>
 
-var things = [
-    {x: 120, y: 120, repr: "triangle",property:{"asdf": "asdf"}},
+
+var senders = [
+    {x: 120, y: 120, repr: "square",property:{"asdf": "asdf"}},
     {x: 150, y: 100, repr: "triangle",property:{"asdf": "asdf"}},
     {x: 50, y: 10, repr: "circle",property:{"asdf": "asdf"}},
     {x: 1000, y: 10, repr: "circle",property:{"asdf": "asdf"}},
     {x: 10, y: 1000, repr: "triangle",property:{}},
 ];
+var receivers = [
+
+]
 var paths = [
     {
         color: "orange",
@@ -49,19 +53,27 @@ var paths = [
 ]
 
 function showMessages() {
-    console.log("asf");
+    window.location.href = "/messages.html";
+}
+function showResources() {
+    window.location.href = "/resources.html";
 }
 
 var interact = [];
 
 function redrawCanvas() {
     const canvas = $("#map_canvas")[0];
-    for (const thing of things) {
+    for (const thing of senders) {
         // lines and areas aren't things?
         // lines are drawn if one of the things theyre attached to are seen
         // areas are completely separate
         // live updating?
         const ctx = canvas.getContext("2d");
+        if (thing.name == localStorage.getItem("userid")) {
+            ctx.fillStyle = "red";
+        } else {
+            ctx.fillStyle = "green";
+        }
         if (thing.repr == "triangle") {
             const size = 10;
             const top = [0, -size];
@@ -79,9 +91,65 @@ function redrawCanvas() {
             ctx.beginPath();
             ctx.arc(thing.x, thing.y, size, 0, Math.PI * 2, true);
             ctx.fill();
+        } else if (thing.repr == "square") {
+            const size = 6;
+            const disp_x = thing.x;
+            const disp_y = thing.y;
+            ctx.beginPath();
+            ctx.moveTo(disp_x-size, disp_y-size);
+            ctx.lineTo(disp_x+size, disp_y-size);
+            ctx.lineTo(disp_x+size, disp_y+size);
+            ctx.lineTo(disp_x-size, disp_y+size);
+            ctx.lineTo(disp_x-size, disp_y-size);
+            ctx.fill();
         }
         const radius = 10;
-        interact.push({x: thing.x, y: thing.y, radius: radius, property: thing.property})
+        thing.resources.name = thing.name;
+        interact.push({x: thing.x, y: thing.y, radius: radius, property: thing.resources})
+    }
+    for (const thing of receivers) {
+        // lines and areas aren't things?
+        // lines are drawn if one of the things theyre attached to are seen
+        // areas are completely separate
+        // live updating?
+        const ctx = canvas.getContext("2d");
+        if (thing.name == localStorage.getItem("userid")) {
+            ctx.fillStyle = "red";
+        } else {
+            ctx.fillStyle = "blue";
+        }
+        if (thing.repr == "triangle") {
+            const size = 10;
+            const top = [0, -size];
+            const bottom_left = [-size*Math.sqrt(3)/2, size/2];
+            const bottom_right = [size*Math.sqrt(3)/2, size/2];
+            const disp_x = thing.x;
+            const disp_y = thing.y;
+            ctx.beginPath();
+            ctx.moveTo(disp_x+top[0], disp_y+top[1]);
+            ctx.lineTo(disp_x+bottom_left[0], disp_y+bottom_left[1]);
+            ctx.lineTo(disp_x+bottom_right[0], disp_y+bottom_right[1]);
+            ctx.fill();
+        } else if (thing.repr == "circle") {
+            const size = 7;
+            ctx.beginPath();
+            ctx.arc(thing.x, thing.y, size, 0, Math.PI * 2, true);
+            ctx.fill();
+        } else if (thing.repr == "square") {
+            const size = 6;
+            const disp_x = thing.x;
+            const disp_y = thing.y;
+            ctx.beginPath();
+            ctx.moveTo(disp_x-size, disp_y-size);
+            ctx.lineTo(disp_x+size, disp_y-size);
+            ctx.lineTo(disp_x+size, disp_y+size);
+            ctx.lineTo(disp_x-size, disp_y+size);
+            ctx.lineTo(disp_x-size, disp_y-size);
+            ctx.fill();
+        }
+        const radius = 10;
+        thing.resources.name = thing.name;
+        interact.push({x: thing.x, y: thing.y, radius: radius, property: thing.resources})
     }
 
     for (const path of paths) {
@@ -109,6 +177,29 @@ function clearCanvas() {
     context.clearRect(0, 0, canvas.width, canvas.height);
     interact = [];
 }
+
+function syncMessages() {
+
+    fetch("/get_people_data", {
+        method: "GET",
+        body: JSON.stringify({
+        }),
+        headers: {
+            "Content-type": "application/json; charset=UTF-8"
+        }
+    })
+    .then((response) => response.json())
+    .then((json) => function(json) {
+        senders = json["senders"];
+        receivers = json["receivers"];
+    });
+    clearCanvas();
+    redrawCanvas();
+}
+
+window.addEventListener("DOMContentLoaded", function() {
+    setInterval(syncMessages, 5000);
+});
 
 function infoPopup(x, y, property) {
     console.log("asdf");
@@ -178,7 +269,10 @@ window.addEventListener("DOMContentLoaded", function() {
 
     if (localStorage.getItem("userid") == null) {
         let person = prompt("Please enter your name", "User "+String(Math.round(Math.random()*10000000)));
-        let role = prompt("What is your role (distributor/camp)", "distributor");
+        var role = "";
+        while (role != "distributor" && role != "camp") {
+            role = prompt("What is your role (distributor/camp)", "distributor");
+        }
         fetch("/add_name", {
             method: "POST",
             body: JSON.stringify({
@@ -197,6 +291,7 @@ window.addEventListener("DOMContentLoaded", function() {
                 alert(json);
             } else {
                 localStorage.setItem("userid", person);
+                localStorage.setItem("role", role);
             }
         });
     }
@@ -234,6 +329,7 @@ window.addEventListener("DOMContentLoaded", function() {
         <div id="main">
             <div id="tabs">
                 <img src="static/mail.jpg" id="messages" onclick="showMessages();">
+                <img src="static/apple.jpg" id="resources" onclick="showResources();">
             </div>
             <div id="map">
                 <canvas id="map_canvas" width="3000" height="3000"></canvas>

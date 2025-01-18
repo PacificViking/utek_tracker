@@ -11,4 +11,8 @@ def main():
 def messages():
     return render_template('messages.html')
 
+@app.route("/resources.html")
+def resources():
+    return render_template('resources.html')
+
 app.run()

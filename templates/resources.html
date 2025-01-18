@@ -1,0 +1,61 @@
+<html>
+    <head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<style>
+</style>
+<script>
+    function sendMessage() {
+        if (localStorage.getItem("role") == "camp") {
+            fetch("/request_resources", {
+                method: "POST",
+                body: JSON.stringify({
+                    sender: localStorage.getItem("userid"),
+                    name: $("#name")[0].value,
+                    amount: $("#amount")[0].value,
+                }),
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+            })
+            .then((response) => response.json())
+            .then((json) => function(json) {
+                if (json["error"] != null) {
+                    window.alert(json);
+                }
+            });
+        } else {
+            fetch("/add_resources", {
+                method: "POST",
+                body: JSON.stringify({
+                    sender: localStorage.getItem("userid"),
+                    name: $("#name")[0].value,
+                    amount: $("#amount")[0].value,
+                }),
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+            })
+            .then((response) => response.json())
+            .then((json) => function(json) {
+                if (json["error"] != null) {
+                    window.alert(json);
+                }
+            });
+        }
+    }
+
+    if (localStorage.getItem("role") == "camp") {
+        hint.innerText == "What does your camp need?";
+    } else {
+        hint.innerText == "What resources do you have?"
+    }
+
+</script>
+    </head>
+    <body>
+        <h1 id="hint"></h1>
+        <input type="text" id="name"/>
+        <input type="number" id="amount"/>
+        <button type="button" onclick="sendRequest();" id="button">Send!</button>
+    </body>
+</html>
