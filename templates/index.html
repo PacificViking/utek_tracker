@@ -28,23 +28,83 @@ html, body { height: 100%; margin: 0px; padding: 0px; }
 }
 </style>
 <script>
+
+var things = [
+    {x: 120, y: 120, repr: "triangle",},
+    {x: 150, y: 100, repr: "triangle",},
+    {x: 50, y: 10, repr: "circle",},
+    {x: 1000, y: 10, repr: "circle",},
+    {x: 10, y: 1000, repr: "triangle",},
+];
+var paths = [
+    {
+        color: "orange",
+        thickness: 3,
+        path: [
+        [1,2],
+        [40,50],
+        [50,40]
+        ]
+    }
+]
+
 function showMessages() {
     console.log("asf");
 }
 
+function redrawCanvas() {
+    const canvas = $("#map_canvas")[0];
+    for (const thing of things) {
+        // lines and areas aren't things?
+        // lines are drawn if one of the things theyre attached to are seen
+        // areas are completely separate
+        // live updating?
+        const ctx = canvas.getContext("2d");
+        if (thing.repr == "triangle") {
+            const size = 10;
+            const top = [0, -size];
+            const bottom_left = [-size*Math.sqrt(3)/2, size/2];
+            const bottom_right = [size*Math.sqrt(3)/2, size/2];
+            const disp_x = thing.x;
+            const disp_y = thing.y;
+            ctx.beginPath();
+            ctx.moveTo(disp_x+top[0], disp_y+top[1]);
+            ctx.lineTo(disp_x+bottom_left[0], disp_y+bottom_left[1]);
+            ctx.lineTo(disp_x+bottom_right[0], disp_y+bottom_right[1]);
+            ctx.fill();
+        } else if (thing.repr == "circle") {
+            const size = 7;
+            ctx.beginPath();
+            ctx.arc(thing.x, thing.y, size, 0, Math.PI * 2, true);
+            ctx.fill();
+        }
+    }
+
+    for (const path of paths) {
+        // lines and areas aren't things?
+        // lines are drawn if one of the things theyre attached to are seen
+        // areas are completely separate
+        // live updating?
+        const ctx = canvas.getContext("2d");
+        ctx.lineWidth = path.thickness;
+        ctx.strokeStyle = path.color;
+        if (path.path.length >= 2) {
+
+            ctx.moveTo(path.path[0][0], path.path[0][1])
+            for (const xy of path.path) {
+                ctx.lineTo(xy[0], xy[1]);
+            }
+        }
+        ctx.stroke();
+    }
+}
+function clearCanvas() {
+    const canvas = $("#map_canvas")[0];
+    const context = canvas.getContext('2d');
+    context.clearRect(0, 0, canvas.width, canvas.height);
+}
+
 window.addEventListener("DOMContentLoaded", function() {
-
-    var things = [
-        {x: 120, y: 120, repr: "triangle",},
-        {x: 150, y: 100, repr: "triangle",},
-        {x: 50, y: 10, repr: "circle",},
-        {x: 1000, y: 10, repr: "circle",},
-        {x: 10, y: 1000, repr: "triangle",},
-    ];
-
-    var map_scale = 1;
-    var map_x = 0;
-    var map_y = 0;
 
     const map = $("#map")[0];
     var map_height = map.getBoundingClientRect().height;
@@ -59,37 +119,9 @@ window.addEventListener("DOMContentLoaded", function() {
         }
     })
     resize_observer.observe(map);
-
-    const canvas = $("#map_canvas")[0];
-    for (const thing of things) {
-        if (map_x < thing.x < map_x + map_width*map_scale) {
-            if (map_y < thing.y < map_y + map_height*map_scale) {
-                // lines and areas aren't things?
-                // lines are drawn if one of the things theyre attached to are seen
-                // areas are completely separate
-                // live updating?
-                const ctx = canvas.getContext("2d");
-                if (thing.repr == "triangle") {
-                    const size = 10;
-                    const top = [0, -size];
-                    const bottom_left = [-size*Math.sqrt(3)/2, size/2];
-                    const bottom_right = [size*Math.sqrt(3)/2, size/2];
-                    const disp_x = thing.x-map_x;
-                    const disp_y = thing.y-map_y;
-                    ctx.beginPath();
-                    ctx.moveTo(disp_x+top[0], disp_y+top[1]);
-                    ctx.lineTo(disp_x+bottom_left[0], disp_y+bottom_left[1]);
-                    ctx.lineTo(disp_x+bottom_right[0], disp_y+bottom_right[1]);
-                    ctx.fill();
-                } else if (thing.repr == "circle") {
-                    const size = 7;
-                    ctx.beginPath();
-                    ctx.arc(thing.x-map_x, thing.y-map_y, size, 0, Math.PI * 2, true);
-                    ctx.fill();
-                }
-            }
-        }
-    }
+    
+    redrawCanvas();
+    clearCanvas();
 
 }, false);
 
