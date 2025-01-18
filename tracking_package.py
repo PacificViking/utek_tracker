@@ -27,7 +27,11 @@ resources = load_json('resources.json')
 deliveries = load_json('deliveries.json')
 names = load_json('names.json')
 
-# ...existing code...
+@app.route('/get_paths', methods=['GET'])
+def get_paths():
+    paths = [delivery['path'] for delivery in deliveries]
+    return jsonify(paths), 200
+
 @app.route('/request_resources', methods=['POST'])
 def request_resources():
     data = request.json
@@ -64,7 +68,6 @@ def add_resources():
 
     return jsonify({"message": "Resources added successfully"}), 200
 
-# ...existing code...
 if __name__ == '__main__':
     app.run(debug=True)
 
@@ -116,22 +119,6 @@ def get_user_by_name(user_name):
         return jsonify({"error": "User not found"}), 404
 
     return jsonify({"user": user}), 200
-
-@app.route('/add_package', methods=['POST'])
-def add_package():
-    data = request.json
-    package_info = data.get('package_info')
-
-    if not package_info or not isinstance(package_info, dict):
-        return jsonify({"error": "Invalid or missing package data"}), 400
-
-    package_id = str(uuid.uuid4())
-    package_info['id'] = package_id
-    package_info['status'] = "Pending"
-    package_info['created_at'] = datetime.utcnow().isoformat()
-    rescue_packages.append(package_info)
-
-    return jsonify({"message": "Package added successfully", "package": package_info}), 200
 
 @app.route('/get_packages', methods=['GET'])
 def get_packages():
