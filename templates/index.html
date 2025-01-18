@@ -1,0 +1,109 @@
+<html>
+    <head>
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<style>
+html, body { height: 100%; margin: 0px; padding: 0px; }
+#main {
+    height: 100%;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 100%;
+    grid-template-rows: minmax(0,1fr) minmax(0,8fr) minmax(0,1fr);
+    
+}
+#main div {
+    border: 2px solid grey;
+}
+#tabs {
+    display: flex;
+    padding-bottom: 10px;
+}
+#tabs img {
+    /* object-fit: contain; */
+    margin-right: 10px;
+}
+#map {
+    overflow-y: scroll;
+    overflow-x: scroll;
+}
+</style>
+<script>
+function showMessages() {
+    console.log("asf");
+}
+
+window.addEventListener("DOMContentLoaded", function() {
+
+    var things = [
+        {x: 120, y: 120, repr: "triangle",},
+        {x: 150, y: 100, repr: "triangle",},
+        {x: 50, y: 10, repr: "circle",},
+        {x: 1000, y: 10, repr: "circle",},
+        {x: 10, y: 1000, repr: "triangle",},
+    ];
+
+    var map_scale = 1;
+    var map_x = 0;
+    var map_y = 0;
+
+    const map = $("#map")[0];
+    var map_height = map.getBoundingClientRect().height;
+    var map_width = map.getBoundingClientRect().width;
+    console.log(map_height, map_width);
+    const resize_observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+            map_height = entry.contentRect.height
+            map_width = entry.contentRect.width
+            console.log(map_height, map_width);
+            // redraw
+        }
+    })
+    resize_observer.observe(map);
+
+    const canvas = $("#map_canvas")[0];
+    for (const thing of things) {
+        if (map_x < thing.x < map_x + map_width*map_scale) {
+            if (map_y < thing.y < map_y + map_height*map_scale) {
+                // lines and areas aren't things?
+                // lines are drawn if one of the things theyre attached to are seen
+                // areas are completely separate
+                // live updating?
+                const ctx = canvas.getContext("2d");
+                if (thing.repr == "triangle") {
+                    const size = 10;
+                    const top = [0, -size];
+                    const bottom_left = [-size*Math.sqrt(3)/2, size/2];
+                    const bottom_right = [size*Math.sqrt(3)/2, size/2];
+                    const disp_x = thing.x-map_x;
+                    const disp_y = thing.y-map_y;
+                    ctx.beginPath();
+                    ctx.moveTo(disp_x+top[0], disp_y+top[1]);
+                    ctx.lineTo(disp_x+bottom_left[0], disp_y+bottom_left[1]);
+                    ctx.lineTo(disp_x+bottom_right[0], disp_y+bottom_right[1]);
+                    ctx.fill();
+                } else if (thing.repr == "circle") {
+                    const size = 7;
+                    ctx.beginPath();
+                    ctx.arc(thing.x-map_x, thing.y-map_y, size, 0, Math.PI * 2, true);
+                    ctx.fill();
+                }
+            }
+        }
+    }
+
+}, false);
+
+</script>
+    </head>
+    <body>
+        <div id="main">
+            <div id="tabs">
+                <img src="static/mail.jpg" id="messages" onclick="showMessages();">
+            </div>
+            <div id="map">
+                <canvas id="map_canvas" width="3000" height="3000"></canvas>
+            </div>
+            <div id="selection"></div>
+        </div>
+    </body>
+</html>
