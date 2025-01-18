@@ -41,7 +41,6 @@
         fetch("/get_users", {
             method: "GET",
             body: JSON.stringify({
-                user: localStorage.getItem("userid"),
             }),
             headers: {
                 "Content-type": "application/json; charset=UTF-8"
@@ -49,9 +48,14 @@
         })
         .then((response) => response.json())
         .then((json) => function(json) {
-            for (const key in json) {
+            for (const sender in json["senders"]) {
                 const item = document.createElement("option");
-                item.value = json[key].sender + "->" + json[key].receiver;
+                item.value = sender;
+                $("#receiver")[0].appendChild(item);
+            }
+            for (const receiver in json["receivers"]) {
+                const item = document.createElement("option");
+                item.value = receiver;
                 $("#receiver")[0].appendChild(item);
             }
         });

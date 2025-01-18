@@ -177,13 +177,52 @@ window.addEventListener("DOMContentLoaded", function() {
     });
 
     if (localStorage.getItem("userid") == null) {
-        localStorage.setItem("userid", "User "+String(Math.round(Math.random()*10000000)))
+        let person = prompt("Please enter your name", "User "+String(Math.round(Math.random()*10000000)));
+        let role = prompt("What is your role (distributor/camp)", "distributor");
+        fetch("/add_name", {
+            method: "POST",
+            body: JSON.stringify({
+                name: person,
+                role: role,
+                x: -1,
+                y: -1
+            }),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+        })
+        .then((response) => response.json())
+        .then((json) => function(json) {
+            if (json["error"] != null) {
+                alert(json);
+            } else {
+                localStorage.setItem("userid", person);
+            }
+        });
     }
-    $("#name_select")[0].value = localStorage.getItem("userid");
+    if (localStorage.getItem("userid") == null) {
+        window.location.reload();
+    }
+    $("#name_select")[0].innerText = localStorage.getItem("userid");
 
     $("#submit_select")[0].addEventListener('click', (e) => {
-
-
+        fetch("/new_location", {
+            method: "POST",
+            body: JSON.stringify({
+                name: localStorage.getItem("userid"),
+                x: $("#x_select")[0].value,
+                y: $("#y_select")[0].value
+            }),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+        })
+        .then((response) => response.json())
+        .then((json) => function(json) {
+            if (json["error"] != null) {
+                alert(json);
+            }
+        });
     });
     
 
@@ -200,13 +239,13 @@ window.addEventListener("DOMContentLoaded", function() {
                 <canvas id="map_canvas" width="3000" height="3000"></canvas>
             </div>
             <div id="selection">
+                <span>Name:</span>
+                <span id="name_select"></span>
                 <span>X:</span>
                 <input type="text" id="x_select" name="x_select" />
                 <span>Y:</span>
                 <input type="text" id="y_select" name="y_select" />
-                <span>Name:</span>
-                <input type="text" id="name_select" name="name" />
-                <button type="button" id="submit_select">Submit</button>
+                <button type="button" id="submit_select">Set Location</button>
             </div>
         </div>
     </body>

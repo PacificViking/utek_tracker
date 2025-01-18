@@ -1,4 +1,5 @@
 from flask import Flask, render_template
+#from CheckName import load_names
 
 app = Flask(__name__)
 

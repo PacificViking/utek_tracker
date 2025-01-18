@@ -30,8 +30,8 @@
         })
         .then((response) => response.json())
         .then((json) => function(json) {
-            for (const key in json) {
-                data = json[key];
+            for (const data in json) {
+                // data = json[key];
                 temp = $("#messageli")[0];
                 item = temp.content.querySelector("tr");
                 the_tr = document.importNode(item, true);
