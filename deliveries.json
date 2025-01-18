@@ -1,0 +1,16 @@
+[
+    {
+        "sender": "Sender2",
+        "receiver": "Receiver2",
+        "time": 70,
+        "resource": "water",
+        "quantity": 4
+    },
+    {
+        "sender": "Sender2",
+        "receiver": "Receiver3",
+        "time": 48,
+        "resource": "medicine",
+        "quantity": 1
+    }
+]

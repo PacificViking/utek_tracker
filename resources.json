@@ -1,0 +1,25 @@
+{
+    "senders": [
+        {
+            "name": "Sender2",
+            "resources": {
+                "water": 8,
+                "medicine": 1
+            }
+        }
+    ],
+    "receivers": [
+        {
+            "name": "Receiver2",
+            "needs": {
+                "water": 4
+            }
+        },
+        {
+            "name": "Receiver3",
+            "needs": {
+                "medicine": 1
+            }
+        }
+    ]
+}
